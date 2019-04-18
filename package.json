@@ -1,0 +1,40 @@
+{
+  "name": "pic-classify",
+  "version": "0.0.1",
+  "description": "JavaScript library for reading EXIF image metadata",
+  "main": "src/main.js",
+  "types": "exif.d.ts",
+  "directories": {
+    "example": "example"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wangjianhui2464/picClassify.git"
+  },
+  "keywords": [
+    "pic"
+  ],
+  "author": "wangjianhui2464",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/wangjianhui2464/picClassify/issues"
+  },
+  "homepage": "https://github.com/wangjianhui2464/picClassify",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "spec",
+    "example"
+  ],
+  "devDependencies": {
+    "bower": "^1.4.2",
+    "mversion": "^1.10.0"
+  },
+  "dependencies": {
+    "exif-js": "2.3.0",
+    "imageinfo": "1.0.4"
+  }
+}
