@@ -2,11 +2,14 @@
  * Created by Dennis Wang
  * on 2019-04-17 22:51
  */
-const exif = require("exif-js");
+const exifTool = require("exiftool-vendored").exiftool;
 const fs = require("fs");
 const imageInfo = require("imageinfo");
 
-const imgPath = "/Users/Dennis/Downloads/归档下载/009-图片壁纸";
+// const imgPath = "/Users/Dennis/Downloads/归档下载/009-图片壁纸";
+const imgPath =
+  "/Users/Dennis/Downloads/归档下载/009-图片壁纸/个人图片/测试2/测试2-2";
+const writePath = "/Users/Dennis/Downloads/PicClassify";
 
 class Main {
   /**
@@ -33,7 +36,7 @@ class Main {
 
         if (isFile) {
           //  处理单个文件信息; 点开头的隐藏文件忽略
-          this.handleFile(currFilePath, fileName, fileStat);
+          this.handleFile(currFilePath, fileName);
         } else if (isDir) {
           //  递归进去 文件夹 处理
           this.getCurrPathFiles(currFilePath);
@@ -52,24 +55,43 @@ class Main {
     //  读取现有文件信息，获取时间信息，
     if (!fileName.startsWith(".")) {
       console.log("   正常文件：" + currFilePath, "\n");
-      //  判断文件类型
-      if (fileName) {
-        let data = fs.readFileSync(currFilePath);
 
-        let imgInfo = imageInfo(data);
-        console.log(
-          `                文件 imgInfo：`,
-          JSON.stringify(imgInfo),
-          "\n"
-        );
+      /*
+        读取文件精确元信息获取时间，建立对应文件夹。
+        TODO：判断文件夹是否存在，递归创建
+       */
+      if (!fs.existsSync(writePath)) {
+        fs.mkdirSync(writePath);
       }
-    } else {
-      console.log("   忽略文件：" + fileName);
+
+      // 读取文件精确元信息获取时间，建立对应文件夹。
+      exifTool
+        .read(currFilePath)
+        .then(tags => {
+          console.log(Object.keys(tags));
+
+          // TODO：读取元信息：
+          // 优先：CreateData.rawValue、ModifyData.rawValue
+          // 其次：FileModifyData.rawValue、DataTimeOriginal.rawValue
+          // 然后：Make:"Apple"、Model:"iPhone 6 Plus"
+          // FileType、FileName、Directory、MIMEType、Software
+
+          fs.writeFileSync(
+            writePath + "/" + fileName + ".json",
+            JSON.stringify(tags)
+          );
+          console.log("\n\n");
+        })
+        .catch(error => console.error(error));
     }
+
     // this.classifyPic();
   }
 
-  readFileInfo() {}
+
+  recursiveMkdir(){
+
+  }
 
   /**
    * 通过时间信息建立以时间为维度的文件夹
