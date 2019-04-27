@@ -2,14 +2,18 @@
  * Created by Dennis Wang
  * on 2019-04-17 22:51
  */
-const exifTool = require("exiftool-vendored").exiftool;
-const fs = require("fs");
-const imageInfo = require("imageinfo");
+const exifTool = require('exiftool-vendored').exiftool;
+const fs = require('fs');
+const imageInfo = require('imageinfo');
 
+// Mac
 // const imgPath = "/Users/Dennis/Downloads/归档下载/009-图片壁纸";
-const imgPath =
-  "/Users/Dennis/Downloads/归档下载/009-图片壁纸/个人图片/测试2/测试2-2";
-const writePath = "/Users/Dennis/Downloads/PicClassify";
+// const imgPath = "/Users/Dennis/Downloads/归档下载/009-图片壁纸/个人图片/测试2/测试2-2";
+// const writePath = "/Users/Dennis/Downloads/PicClassify";
+
+// windows
+const imgPath = 'E:\\photos';
+const writePath = 'E:\\photosClassify';
 
 class Main {
   /**
@@ -26,7 +30,7 @@ class Main {
     } else {
       // 获取到文件夹下的所有子元素
       filePath.map((fileName, index, array) => {
-        const currFilePath = targetPath + "/" + fileName;
+        const currFilePath = targetPath + '\\' + fileName;
 
         let fileStat = fs.statSync(currFilePath);
 
@@ -53,34 +57,46 @@ class Main {
    */
   handleFile(currFilePath, fileName, fileStat) {
     //  读取现有文件信息，获取时间信息，
-    if (!fileName.startsWith(".")) {
-      console.log("   正常文件：" + currFilePath, "\n");
-
-      /*
-        读取文件精确元信息获取时间，建立对应文件夹。
-        TODO：判断文件夹是否存在，递归创建
-       */
-      if (!fs.existsSync(writePath)) {
-        fs.mkdirSync(writePath);
-      }
+    if (!fileName.startsWith('.')) {
+      console.log('   正常文件：' + currFilePath, '\n');
 
       // 读取文件精确元信息获取时间，建立对应文件夹。
       exifTool
         .read(currFilePath)
-        .then(tags => {
-          console.log(Object.keys(tags));
+        .then(exifInfo => {
+
+          // console.log(`CreateDate: ${exifInfo.CreateDate}, ModifyDate:${exifInfo.ModifyDate}, \n FileModifyDate:${exifInfo.FileModifyDate}, DateTimeOriginal:${exifInfo.DateTimeOriginal} `);
 
           // TODO：读取元信息：
-          // 优先：CreateData.rawValue、ModifyData.rawValue
-          // 其次：FileModifyData.rawValue、DataTimeOriginal.rawValue
+          // 优先：CreateDate.rawValue、ModifyDate.rawValue
+          // 其次：FileModifyDate.rawValue、DateTimeOriginal.rawValue
           // 然后：Make:"Apple"、Model:"iPhone 6 Plus"
           // FileType、FileName、Directory、MIMEType、Software
+          let fileRealDate;
+          if (exifInfo.CreateDate) {
+            fileRealDate = exifInfo.CreateDate;
+          } else if (!fileRealDate && exifInfo.ModifyDate) {
+            fileRealDate = exifInfo.ModifyDate;
+          } else if (!fileRealDate && exifInfo.FileModifyDate) {
+            fileRealDate = exifInfo.FileModifyDate;
+          } else if (!fileRealDate && exifInfo.DateTimeOriginal) {
+            fileRealDate = exifInfo.DateTimeOriginal;
+          }
 
-          fs.writeFileSync(
-            writePath + "/" + fileName + ".json",
-            JSON.stringify(tags)
-          );
-          console.log("\n\n");
+          console.log(currFilePath, fileRealDate.rawValue);
+
+
+          /*
+            读取文件精确元信息获取时间，建立对应文件夹。
+            TODO：判断文件夹是否存在，递归创建
+           */
+          let targetPath = this.recursiveMkdir(writePath);
+
+          /*
+          * TODO: 读取文件需要判断文件是否重名
+          * TODO：记录日志：处理文件计数。处理文件路径、文件名、处理前后的路径。
+          */
+          this.moveFile(targetPath, currFilePath, fileName, exifInfo)
         })
         .catch(error => console.error(error));
     }
@@ -88,22 +104,35 @@ class Main {
     // this.classifyPic();
   }
 
-
-  recursiveMkdir(){
-
-  }
-
   /**
-   * 通过时间信息建立以时间为维度的文件夹
+   * TODO：处理文件夹：传入具体路径逐级判断文件夹，并创建
+   * @param writePath
    */
-  classifyPic() {
-    this.moveImg();
+  recursiveMkdir(writePath) {
+    let targetPath = '';
+    if (!fs.existsSync(writePath)) {
+      fs.mkdirSync(writePath);
+    }
+
+    return targetPath;
   }
 
   /**
    * 将该文件移动到该文件夹下面
+   * @param targetPath
+   * @param filePath
+   * @param oldFileName
+   * @param exifInfo 元信息
    */
-  moveImg() {}
+  moveFile(targetPath, filePath,  oldFileName, exifInfo) {
+    
+    //TODO：临时测试将 元信息 写入json，后续写入对应规则的文件夹中。
+    fs.writeFileSync(
+      targetPath + '/' + oldFileName + '.json',
+      JSON.stringify(exifInfo),
+    );
+    console.log('\n\n');
+  }
 }
 
 let go = new Main();
