@@ -2,18 +2,18 @@
  * Created by Dennis Wang
  * on 2019-04-17 22:51
  */
-const exifTool = require('exiftool-vendored').exiftool;
-const fs = require('fs');
-const imageInfo = require('imageinfo');
+const exifTool = require("exiftool-vendored").exiftool;
+const fs = require("fs");
+const imageInfo = require("imageinfo");
 
 // Mac
-// const imgPath = "/Users/Dennis/Downloads/归档下载/009-图片壁纸";
+const imgPath = "/Users/Dennis/Downloads/PicClassify/001";
 // const imgPath = "/Users/Dennis/Downloads/归档下载/009-图片壁纸/个人图片/测试2/测试2-2";
-// const writePath = "/Users/Dennis/Downloads/PicClassify";
+const writePath = "/Users/Dennis/Downloads/PicClassify/444";
 
 // windows
-const imgPath = 'E:\\photos';
-const writePath = 'E:\\photosClassify';
+// const imgPath = 'E:\\photos';
+// const writePath = 'E:\\photosClassify';
 
 class Main {
   /**
@@ -30,7 +30,14 @@ class Main {
     } else {
       // 获取到文件夹下的所有子元素
       filePath.map((fileName, index, array) => {
-        const currFilePath = targetPath + '\\' + fileName;
+        if (fileName.startsWith(".")) {
+          console.log(
+            '------targetPath + "\\" + fileName----',
+            targetPath + "\\" + fileName
+          );
+          return false;
+        }
+        const currFilePath = targetPath + "/" + fileName;
 
         let fileStat = fs.statSync(currFilePath);
 
@@ -57,15 +64,15 @@ class Main {
    */
   handleFile(currFilePath, fileName, fileStat) {
     //  读取现有文件信息，获取时间信息，
-    if (!fileName.startsWith('.')) {
-      console.log('   正常文件：' + currFilePath, '\n');
+    if (!fileName.startsWith(".")) {
+      console.log("   正常文件：" + currFilePath, "\n");
 
       // 读取文件精确元信息获取时间，建立对应文件夹。
       exifTool
         .read(currFilePath)
         .then(exifInfo => {
-
           // console.log(`CreateDate: ${exifInfo.CreateDate}, ModifyDate:${exifInfo.ModifyDate}, \n FileModifyDate:${exifInfo.FileModifyDate}, DateTimeOriginal:${exifInfo.DateTimeOriginal} `);
+          console.log("----exifInfo---: ", exifInfo);
 
           // TODO：读取元信息：
           // 优先：CreateDate.rawValue、ModifyDate.rawValue
@@ -83,8 +90,11 @@ class Main {
             fileRealDate = exifInfo.DateTimeOriginal;
           }
 
-          console.log(currFilePath, fileRealDate.rawValue);
-
+          console.log(
+            "------元信息 结果：------",
+            currFilePath,
+            fileRealDate.rawValue
+          );
 
           /*
             读取文件精确元信息获取时间，建立对应文件夹。
@@ -93,10 +103,10 @@ class Main {
           let targetPath = this.recursiveMkdir(writePath);
 
           /*
-          * TODO: 读取文件需要判断文件是否重名
-          * TODO：记录日志：处理文件计数。处理文件路径、文件名、处理前后的路径。
-          */
-          this.moveFile(targetPath, currFilePath, fileName, exifInfo)
+           * TODO: 读取文件需要判断文件是否重名
+           * TODO：记录日志：处理文件计数。处理文件路径、文件名、处理前后的路径。
+           */
+          this.moveFile(targetPath, currFilePath, fileName, exifInfo);
         })
         .catch(error => console.error(error));
     }
@@ -109,7 +119,7 @@ class Main {
    * @param writePath
    */
   recursiveMkdir(writePath) {
-    let targetPath = '';
+    let targetPath = "";
     if (!fs.existsSync(writePath)) {
       fs.mkdirSync(writePath);
     }
@@ -124,14 +134,13 @@ class Main {
    * @param oldFileName
    * @param exifInfo 元信息
    */
-  moveFile(targetPath, filePath,  oldFileName, exifInfo) {
-    
+  moveFile(targetPath, filePath, oldFileName, exifInfo) {
     //TODO：临时测试将 元信息 写入json，后续写入对应规则的文件夹中。
     fs.writeFileSync(
-      targetPath + '/' + oldFileName + '.json',
-      JSON.stringify(exifInfo),
+      targetPath + "/" + oldFileName + ".json",
+      JSON.stringify(exifInfo)
     );
-    console.log('\n\n');
+    console.log("\n\n");
   }
 }
 
