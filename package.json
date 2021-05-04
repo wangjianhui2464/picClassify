@@ -34,7 +34,7 @@
     "mversion": "^1.10.0"
   },
   "dependencies": {
-    "exiftool-vendored": "8.8.0",
+    "exiftool-vendored": "14.3.0",
     "imageinfo": "1.0.4"
   }
 }
